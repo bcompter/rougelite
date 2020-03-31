@@ -32,6 +32,7 @@ public abstract class AbstractEntity implements iEntity {
     float xPosition;
     float yPosition;
     boolean isFacingLeft = false;
+    int width, height;
     
     // Health
     float health;
@@ -46,6 +47,8 @@ public abstract class AbstractEntity implements iEntity {
         green = 1;
         blue = 1;
         alpha = 1;
+        width = Game.TILE_SIZE;
+        height = Game.TILE_SIZE;
     }
     
     /**
@@ -59,6 +62,8 @@ public abstract class AbstractEntity implements iEntity {
         green = 1;
         blue = 1;
         alpha = 1;
+        width = Game.TILE_SIZE;
+        height = Game.TILE_SIZE;
     }
     
     /**
@@ -67,7 +72,7 @@ public abstract class AbstractEntity implements iEntity {
     @Override
     public void Render(SpriteBatch batch)
     {
-        sprites.get(activeSprite).setSize(64, 64);
+        sprites.get(activeSprite).setSize(width, height);
         sprites.get(activeSprite).setColor(red, green, blue, alpha);
         sprites.get(activeSprite).setCenter(xPosition, yPosition);
         sprites.get(activeSprite).draw(batch);

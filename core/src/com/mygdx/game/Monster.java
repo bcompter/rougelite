@@ -5,9 +5,9 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
- * Representation of the player in the game
+ *
  */
-public class Player extends AbstractEntity{
+public class Monster extends AbstractEntity{
     
     /**
      * Dungeon coordinates
@@ -24,12 +24,20 @@ public class Player extends AbstractEntity{
     /**
      * Stats
      */
-    int health = 10;
+    int health = 3;
+    
+    /**
+     * Create a new blank monster
+     */
+    public Monster()
+    {
+        super();
+    }
     
     /**
      * Create a new player
      */
-    public Player(Texture t, int x, int y, int w, int h)
+    public Monster(Texture t, int x, int y, int w, int h)
     {
         // Call super constructor
         super(t, x, y, w, h);

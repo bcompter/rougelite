@@ -13,9 +13,12 @@ import com.badlogic.gdx.InputProcessor;
 
 public class Game extends ApplicationAdapter implements InputProcessor {
     
+    // Tile Size
+    final static int TILE_SIZE = 64;
+    
     // Screen size
-    final int SCREEN_HEIGHT = 600;
-    final int SCREEN_WIDTH = 800;
+    final int SCREEN_HEIGHT = TILE_SIZE * (10+3+2);
+    final int SCREEN_WIDTH = TILE_SIZE * (10+2+3);
     
     // Camera
     FitViewport viewPort;
@@ -39,6 +42,11 @@ public class Game extends ApplicationAdapter implements InputProcessor {
      */
     Array <Tile> theTiles = new Array();
     
+    /**
+     * Other things
+     */
+    GenericEntity heart;
+    
     @Override
     public void create () 
     {
@@ -49,8 +57,15 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         Texture t = new Texture("8x.png");
         thePlayer = new Player(t, 0, 0, 11, 11);
         thePlayer.AddSprite(t, 0, 12, 11, 11);
+        thePlayer.xCoord = 1;
+        thePlayer.yCoord = 1;
         
         theDungeon = new Dungeon(t);
+        theDungeon.GenerateNextLevel();
+        
+        heart = new GenericEntity(t, 80, 56, 5, 4);
+        heart.width = 32;
+        heart.height = 32;
         
         Tile tile = new Tile();
         tile.AddSprite(t, 56, 85, 8, 8);
@@ -86,8 +101,17 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         
+        // Detect end of level
+        if (theDungeon.IsAtGate(thePlayer))
+        {
+            theDungeon.GenerateNextLevel();
+            thePlayer.xCoord = 1;
+            thePlayer.yCoord = 1;
+        }
+        
         // Update
         thePlayer.Update(delta);
+        theDungeon.Update(delta);
         
         // Render the scene
         batch.begin();
@@ -97,6 +121,15 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         
         // The player
         thePlayer.Render(batch);
+        
+        // Hearts
+        heart.xPosition = 70;
+        heart.yPosition = 20;
+        for (int i = 0; i < thePlayer.health; i++)
+        {
+            heart.Render(batch);
+            heart.xPosition += 50;
+        }
 
         batch.end();
     }
@@ -111,16 +144,16 @@ public class Game extends ApplicationAdapter implements InputProcessor {
      */
     public boolean keyTyped(char character)
     {
-        System.out.println("Key pressed! " + (int)character + " position: " + thePlayer.xPosition + ", " + thePlayer.yPosition);
+        System.out.println("Key pressed! " + (int)character + " position: " + thePlayer.xCoord + ", " + thePlayer.yCoord);
         
         if (Gdx.input.isKeyPressed(Input.Keys.UP))
         {
-            if (thePlayer.yCoord < 7)
+            if (theDungeon.CanMove(thePlayer.xCoord, thePlayer.yCoord+1))
                 thePlayer.yCoord += 1;
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.DOWN))
         {
-            if (thePlayer.yCoord > 0)
+            if (theDungeon.CanMove(thePlayer.xCoord, thePlayer.yCoord-1))
                 thePlayer.yCoord -= 1;
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
@@ -130,7 +163,7 @@ public class Game extends ApplicationAdapter implements InputProcessor {
                 thePlayer.FlipSprites();
             }
             thePlayer.isFacingLeft = true;
-            if (thePlayer.xCoord > 1)
+            if (theDungeon.CanMove(thePlayer.xCoord-1, thePlayer.yCoord))
                 thePlayer.xCoord -= 1;
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
@@ -140,8 +173,12 @@ public class Game extends ApplicationAdapter implements InputProcessor {
                 thePlayer.FlipSprites();
             }
             thePlayer.isFacingLeft = false;
-            if (thePlayer.xCoord < 10)
+            if (theDungeon.CanMove(thePlayer.xCoord+1, thePlayer.yCoord))
                 thePlayer.xCoord += 1;
+        }
+        else if (Gdx.input.isKeyPressed(Input.Keys.SPACE))
+        {
+            theDungeon.OpenGate();
         }
         
         return true;

@@ -11,8 +11,6 @@ public class Tile extends AbstractEntity{
     public Tile()
     {
         super();
-        xPosition = 32;
-        yPosition = 32;
     }
     
     public Tile (Texture t, int x, int y, int w, int h)
@@ -26,10 +24,10 @@ public class Tile extends AbstractEntity{
      */
     public void Render(SpriteBatch batch, int x, int y)
     {
-        xPosition = 32 + x * 64;
-        yPosition = 32 + y * 64;
+        xPosition = (Game.TILE_SIZE/2) + x * Game.TILE_SIZE;
+        yPosition = (Game.TILE_SIZE/2) + y * Game.TILE_SIZE;
         
-        sprites.get(activeSprite).setSize(64, 64);
+        sprites.get(activeSprite).setSize(Game.TILE_SIZE, Game.TILE_SIZE);
         sprites.get(activeSprite).setColor(red, green, blue, alpha);
         sprites.get(activeSprite).setCenter(xPosition, yPosition);
         sprites.get(activeSprite).draw(batch);
