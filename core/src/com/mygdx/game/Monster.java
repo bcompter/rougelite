@@ -3,11 +3,12 @@ package com.mygdx.game;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 
 /**
  *
  */
-public class Monster extends AbstractEntity{
+public class Monster extends AbstractEntity implements Attackable{
     
     /**
      * Dungeon coordinates
@@ -20,11 +21,15 @@ public class Monster extends AbstractEntity{
      */
     final float ANIMATE_STEP = 0.5f;
     float animationTimer = 0;
+    boolean isDying = false;
     
     /**
      * Stats
      */
     int health = 3;
+    int actionPoints = 4;
+    int defense = 5;
+    int armor = 0;
     
     /**
      * Create a new blank monster
@@ -35,7 +40,28 @@ public class Monster extends AbstractEntity{
     }
     
     /**
-     * Create a new player
+     * Attack this monster
+     */
+    public void Attack(int AS, Weapon w)
+    {
+        if ( (MathUtils.random(1,6) + MathUtils.random(1,6) + AS) > defense )
+        {
+            System.out.println("HIT");
+            health -= w.damage;
+            if (health < 1)
+            {
+                isDying = true;
+                System.out.println("DEAD!!!");
+            }
+        }
+        else
+        {
+            System.out.println("MISS");
+        }
+    }
+    
+    /**
+     * Create a new monster
      */
     public Monster(Texture t, int x, int y, int w, int h)
     {
@@ -49,7 +75,17 @@ public class Monster extends AbstractEntity{
     @Override
     public void Update(float delta)
     {
-        if (sprites.size > 1)
+        if (isDying)
+        {
+            animationTimer += delta;
+            if (animationTimer > ANIMATE_STEP && alpha > 0)
+            {
+                alpha -= 0.03;
+                if (alpha < 0.0)
+                    alpha = 0.0f;
+            }
+        }
+        else if (sprites.size > 1)
         {
             animationTimer += delta;
             if (animationTimer > ANIMATE_STEP)
@@ -60,6 +96,7 @@ public class Monster extends AbstractEntity{
                     activeSprite = 0;
             }
         }
+        
     }  // end Update
     
     /**
@@ -87,6 +124,19 @@ public class Monster extends AbstractEntity{
         {
             s.flip(true, false);
         }
+    }
+    
+    /**
+     * Is this monster dead?
+     */
+    public boolean isDead()
+    {
+        if (isDying && alpha == 0)
+        {
+            return true;
+        }
+        
+        return false;
     }
     
 }

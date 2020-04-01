@@ -62,4 +62,22 @@ public class Gate extends AbstractEntity{
         
     }  // end Render
     
+    /**
+     * 
+     */
+    public void Open()
+    {
+        isOpening = true;
+    }
+    
+    /**
+     * 
+     */
+    public void Close()
+    {
+        isOpen = false;
+        isOpening = false;
+        activeSprite = 0;
+    }
+    
 }

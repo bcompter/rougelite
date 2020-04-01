@@ -150,11 +150,21 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         {
             if (theDungeon.CanMove(thePlayer.xCoord, thePlayer.yCoord+1))
                 thePlayer.yCoord += 1;
+            else if (theDungeon.IsMonsterAt(thePlayer.xCoord, thePlayer.yCoord+1))
+            {
+                theDungeon.GetMonsterAt(thePlayer.xCoord, thePlayer.yCoord+1).Attack(thePlayer.AS, thePlayer.weaponSlot);
+                thePlayer.Act();
+            }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.DOWN))
         {
             if (theDungeon.CanMove(thePlayer.xCoord, thePlayer.yCoord-1))
                 thePlayer.yCoord -= 1;
+            else if (theDungeon.IsMonsterAt(thePlayer.xCoord, thePlayer.yCoord-1))
+            {
+                theDungeon.GetMonsterAt(thePlayer.xCoord, thePlayer.yCoord-1).Attack(thePlayer.AS, thePlayer.weaponSlot);
+                thePlayer.Act();
+            }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
         {
@@ -165,6 +175,11 @@ public class Game extends ApplicationAdapter implements InputProcessor {
             thePlayer.isFacingLeft = true;
             if (theDungeon.CanMove(thePlayer.xCoord-1, thePlayer.yCoord))
                 thePlayer.xCoord -= 1;
+            else if (theDungeon.IsMonsterAt(thePlayer.xCoord-1, thePlayer.yCoord))
+            {
+                theDungeon.GetMonsterAt(thePlayer.xCoord-1, thePlayer.yCoord).Attack(thePlayer.AS, thePlayer.weaponSlot);
+                thePlayer.Act();
+            }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
         {
@@ -175,6 +190,11 @@ public class Game extends ApplicationAdapter implements InputProcessor {
             thePlayer.isFacingLeft = false;
             if (theDungeon.CanMove(thePlayer.xCoord+1, thePlayer.yCoord))
                 thePlayer.xCoord += 1;
+            else if (theDungeon.IsMonsterAt(thePlayer.xCoord+1, thePlayer.yCoord))
+            {
+                theDungeon.GetMonsterAt(thePlayer.xCoord+1, thePlayer.yCoord).Attack(thePlayer.AS, thePlayer.weaponSlot);
+                thePlayer.Act();
+            }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.SPACE))
         {

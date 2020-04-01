@@ -18,13 +18,22 @@ public class Player extends AbstractEntity{
     /**
      * Animation timers
      */
-    final float ANIMATE_STEP = 0.5f;
+    float ANIMATE_STEP = 0.5f;
     float animationTimer = 0;
+    float actTimer = 0;
     
     /**
      * Stats
      */
     int health = 10;
+    int AS = 2;
+    int defense = 7;
+    int armor = 0;
+            
+    /**
+     * Equipment
+     */
+    Weapon weaponSlot = new Weapon();
     
     /**
      * Create a new player
@@ -50,6 +59,15 @@ public class Player extends AbstractEntity{
                 activeSprite++;
                 if (activeSprite >= sprites.size)
                     activeSprite = 0;
+            }
+            if (actTimer > 0)
+            {
+                actTimer -= delta;
+                if (actTimer < 0)
+                {
+                    actTimer = 0;   
+                    ANIMATE_STEP = 0.5f;
+                }
             }
         }
     }  // end Update
@@ -79,6 +97,16 @@ public class Player extends AbstractEntity{
         {
             s.flip(true, false);
         }
+        System.out.println("acttimer = " + actTimer);
+    }
+    
+    /**
+     * Temporarily increase animation speed
+     */
+    public void Act()
+    {
+        ANIMATE_STEP = 0.15f;
+        actTimer = 1.0f;
     }
     
 }

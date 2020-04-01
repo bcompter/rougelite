@@ -17,6 +17,7 @@ public class Dungeon {
     Gate gate = new Gate();
     
     Array <Monster> monsters = new Array();
+    Array <Monster> removeList = new Array();
     
     int level = -1;
     
@@ -24,12 +25,15 @@ public class Dungeon {
 
     Monster skeleton = new Monster();
     
+    Texture tex;
+    
     /**
      * Create a new dungeon
      * Keeping it simple for now.
      */
     public Dungeon(Texture t)
     {
+        tex = t;
         skeleton.AddSprite(t, 78, 0, 11, 11);
         skeleton.AddSprite(t, 78, 12, 11, 11);
         skeleton.FlipSprites();
@@ -71,12 +75,17 @@ public class Dungeon {
     {
        level++;
        System.out.println("Generating level " + level);
-       gate.isOpen = false;
+       gate.Close();
        
        // Make a monster!
+       skeleton = new Monster();
+       skeleton.AddSprite(tex, 78, 0, 11, 11);
+       skeleton.AddSprite(tex, 78, 12, 11, 11);
+       skeleton.FlipSprites();
        skeleton.xCoord = 8;
        skeleton.yCoord = 8;
-       monsters.add(skeleton);
+       if (monsters.size == 0)
+          monsters.add(skeleton);
        
        for (int y = 0; y < 13; y++)
        {
@@ -124,6 +133,7 @@ public class Dungeon {
                }
                else
                {
+                   // Floor
                    theMap[x][y] = 'f';
                }
            }
@@ -229,14 +239,23 @@ public class Dungeon {
         for (Monster m : monsters)
         {
             m.Update(delta);
+            if (m.isDead())
+                removeList.add(m);
+        }
+        
+        // Remove any dead monsters
+        for (Monster m : removeList)
+        {
+            monsters.removeValue(m, true);
         }
         
         // Open the gate if there are no enemies
         if (monsters.size == 0 && !gate.isOpen)
         {
-            gate.isOpening = true;
+            gate.Open();
         }
         
+        // Animate gate
         gate.Update(delta);
     }  // end Update
     
@@ -265,6 +284,14 @@ public class Dungeon {
             default:
                 retval = false;
         }
+        
+        // Make sure we are not hitting any monsters
+        for (Monster m : monsters)
+        {
+            if (m.xCoord == x && m.yCoord == y)
+                retval = false;
+        }
+        
         return retval;
     }
     
@@ -288,6 +315,32 @@ public class Dungeon {
         }
         else 
             return false;
+    }
+    
+    /**
+     * Is a monster here? 
+     */
+    public boolean IsMonsterAt(int x, int y)
+    {
+        for (Monster m : monsters)
+        {
+            if (m.xCoord == x && m.yCoord == y)
+                return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Return a monster 
+     */
+    public Monster GetMonsterAt(int x, int y)
+    {
+        for (Monster m : monsters)
+        {
+            if (m.xCoord == x && m.yCoord == y)
+                return m;
+        }
+        return new Monster();
     }
     
 }  // end Dungeon
