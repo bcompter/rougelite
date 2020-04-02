@@ -3,11 +3,12 @@ package com.mygdx.game;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 
 /**
  * Representation of the player in the game
  */
-public class Player extends AbstractEntity{
+public class Player extends AbstractEntity implements Attackable{
     
     /**
      * Dungeon coordinates
@@ -25,6 +26,8 @@ public class Player extends AbstractEntity{
     /**
      * Stats
      */
+    int actionPoints = 5;
+    int maxActionPoints = 5;
     int health = 10;
     int AS = 2;
     int defense = 7;
@@ -42,6 +45,27 @@ public class Player extends AbstractEntity{
     {
         // Call super constructor
         super(t, x, y, w, h);
+    }
+    
+    /**
+     * Attack this player
+     */
+    public void Attack(int AS, Weapon w)
+    {
+        if ( (MathUtils.random(1,6) + MathUtils.random(1,6) + AS) > defense )
+        {
+            System.out.println("HIT");
+            health -= w.damage;
+            if (health < 1)
+            {
+                /* Player death handled in main game loop */
+                System.out.println("Game over man, Game Over!");
+            }
+        }
+        else
+        {
+            System.out.println("MISS");
+        }
     }
     
     /**
@@ -107,6 +131,14 @@ public class Player extends AbstractEntity{
     {
         ANIMATE_STEP = 0.15f;
         actTimer = 1.0f;
+    }
+    
+    /**
+     * 
+     */
+    public void RefillActionPoints()
+    {
+        actionPoints = maxActionPoints;
     }
     
 }

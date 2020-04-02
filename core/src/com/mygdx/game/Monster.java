@@ -10,6 +10,8 @@ import com.badlogic.gdx.math.MathUtils;
  */
 public class Monster extends AbstractEntity implements Attackable{
     
+    Dungeon myDungeon;
+    
     /**
      * Dungeon coordinates
      */
@@ -19,24 +21,143 @@ public class Monster extends AbstractEntity implements Attackable{
     /**
      * Animation timers
      */
-    final float ANIMATE_STEP = 0.5f;
+    float ANIMATE_STEP = 0.5f;
     float animationTimer = 0;
+    float actTimer = 0;
     boolean isDying = false;
     
     /**
      * Stats
      */
     int health = 3;
+    int AS = 2;
     int actionPoints = 4;
+    int maxActionPoints = 4;
     int defense = 5;
     int armor = 0;
+    Weapon myWeapon = new Weapon();
     
     /**
      * Create a new blank monster
      */
-    public Monster()
+    public Monster(Dungeon d)
     {
         super();
+        myDungeon = d;
+    }
+    
+    /**
+     * Perform actions until 
+     * @return true if I acted, false if I had nothing to do
+     */
+    public boolean Act()
+    {
+        // Do we have anything to do?
+        if (actionPoints > 0)
+        {
+            System.out.println("Monster acting...");
+            // If we are not in range of the player, move closer...
+            Player p = myDungeon.theGame.thePlayer;
+            if (Game.DistanceBetween(p.xCoord, p.yCoord, xCoord, yCoord) > myWeapon.range)
+            {
+                int distX = Math.abs(p.xCoord-xCoord);
+                int distY = Math.abs(p.yCoord-yCoord);
+                if ((distX) == (distY))
+                {
+                    // Randomly move
+                    actionPoints--;
+                    int dieFlip = MathUtils.random(1,2);
+                    if (dieFlip == 1)
+                    {
+                        if (xCoord < p.xCoord)
+                        {
+                            if (myDungeon.CanMove(xCoord + 1, yCoord))
+                            {
+                                xCoord++;
+                            }
+                        }
+                        else
+                        {
+                            if (myDungeon.CanMove(xCoord - 1, yCoord))
+                            {
+                                xCoord--;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (yCoord < p.yCoord)
+                        {
+                            if (myDungeon.CanMove(xCoord, yCoord+1))
+                            {
+                                yCoord++;
+                            }
+                        }
+                        else
+                        {
+                            if (myDungeon.CanMove(xCoord, yCoord-1))
+                            {
+                                yCoord--;
+                            }
+                        }
+                    }
+                    
+                }
+                else if (distX > distY)
+                {
+                    // Move left or right
+                    actionPoints--;
+                    if (xCoord < p.xCoord)
+                    {
+                        if (myDungeon.CanMove(xCoord + 1, yCoord))
+                        {
+                            xCoord++;
+                        }
+                    }
+                    else
+                    {
+                        if (myDungeon.CanMove(xCoord - 1, yCoord))
+                        {
+                            xCoord--;
+                        }
+                    }                   
+                        
+                }
+                else
+                {
+                    // Move up or down
+                    actionPoints--;
+                    if (yCoord < p.yCoord)
+                    {
+                        if (myDungeon.CanMove(xCoord, yCoord+1))
+                        {
+                            yCoord++;
+                        }
+                    }
+                    else
+                    {
+                        if (myDungeon.CanMove(xCoord, yCoord-1))
+                        {
+                            yCoord--;
+                        }
+                    }   
+                }
+            }
+            else
+            {
+                // Otherwise attack the player
+                ANIMATE_STEP = 0.10f;
+                actTimer = 0.5f;
+                p.Attack(AS, myWeapon);
+                actionPoints -= myWeapon.speed;
+                if (actionPoints < 0) 
+                    actionPoints = 0;
+            }         
+
+            return true;
+        }
+        
+        return false;
     }
     
     /**
@@ -61,20 +182,14 @@ public class Monster extends AbstractEntity implements Attackable{
     }
     
     /**
-     * Create a new monster
-     */
-    public Monster(Texture t, int x, int y, int w, int h)
-    {
-        // Call super constructor
-        super(t, x, y, w, h);
-    }
-    
-    /**
      * Update this entity
      */
     @Override
     public void Update(float delta)
     {
+        /**
+         * Perform animations
+         */
         if (isDying)
         {
             animationTimer += delta;
@@ -94,6 +209,15 @@ public class Monster extends AbstractEntity implements Attackable{
                 activeSprite++;
                 if (activeSprite >= sprites.size)
                     activeSprite = 0;
+            }
+            if (actTimer > 0)
+            {
+                actTimer -= delta;
+                if (actTimer < 0)
+                {
+                    actTimer = 0;   
+                    ANIMATE_STEP = 0.5f;
+                }
             }
         }
         
@@ -139,4 +263,12 @@ public class Monster extends AbstractEntity implements Attackable{
         return false;
     }
     
-}
+    /**
+     * 
+     */
+    public void RefillActionPoints()
+    {
+        actionPoints = maxActionPoints;
+    }
+
+}  // end class

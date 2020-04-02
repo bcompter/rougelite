@@ -47,6 +47,25 @@ public class Game extends ApplicationAdapter implements InputProcessor {
      */
     GenericEntity heart;
     
+    /**
+     * Timing of monster actions
+     */
+    float monsterTimer = 0.0f;
+    float MONSTER_TIME_PERIOD = 1.0f;    
+    
+    /**
+     * Game state
+     */
+    enum STATE
+    {
+        GAME_START,
+        GAME_PLAYER_TURN,
+        GAME_MONSTER_TURN,
+        GAME_OVER
+    }
+    
+    STATE theGameState = STATE.GAME_START;
+    
     @Override
     public void create () 
     {
@@ -60,7 +79,7 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         thePlayer.xCoord = 1;
         thePlayer.yCoord = 1;
         
-        theDungeon = new Dungeon(t);
+        theDungeon = new Dungeon(t, this);
         theDungeon.GenerateNextLevel();
         
         heart = new GenericEntity(t, 80, 56, 5, 4);
@@ -87,6 +106,60 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         // Set the input processor
         Gdx.input.setInputProcessor(this);
     }
+    
+    /**
+     * Update the game
+     */
+    public void Update(float delta)
+    {
+        switch (theGameState)
+        {
+            case GAME_START:
+                // Advance to player turn
+                theGameState = STATE.GAME_PLAYER_TURN;
+                break;
+            case GAME_PLAYER_TURN:
+                if (theDungeon.monsters.size == 0)
+                {
+                    thePlayer.RefillActionPoints();
+                } 
+                else if (thePlayer.actionPoints <= 0)
+                {
+                    theGameState = STATE.GAME_MONSTER_TURN;
+                    for (Monster m : theDungeon.monsters)
+                    {
+                        m.RefillActionPoints();
+                    }
+                }
+                break;
+            case GAME_MONSTER_TURN:
+                
+                // Perform actions until all Monsters are done
+                monsterTimer += delta;
+                if (monsterTimer > MONSTER_TIME_PERIOD)
+                {
+                    monsterTimer = 0;
+                    boolean areWeDone = true;
+                    for (Monster m : theDungeon.monsters)
+                    {
+                        if (m.Act())
+                        {
+                            areWeDone = false;
+                            break;
+                        }
+                    }
+                    if (areWeDone)
+                    {
+                        thePlayer.RefillActionPoints();
+                        theGameState = STATE.GAME_PLAYER_TURN;
+                    }
+                }
+                break;
+            case GAME_OVER:
+                /* Dead! */
+                break;
+        }
+    }
 
     @Override
     public void render () 
@@ -109,9 +182,10 @@ public class Game extends ApplicationAdapter implements InputProcessor {
             thePlayer.yCoord = 1;
         }
         
-        // Update
+        // Update the game
+        Update(delta);
         thePlayer.Update(delta);
-        theDungeon.Update(delta);
+        theDungeon.Update(delta);       
         
         // Render the scene
         batch.begin();
@@ -144,26 +218,42 @@ public class Game extends ApplicationAdapter implements InputProcessor {
      */
     public boolean keyTyped(char character)
     {
-        System.out.println("Key pressed! " + (int)character + " position: " + thePlayer.xCoord + ", " + thePlayer.yCoord);
+        System.out.println("Key pressed! " 
+                + (int)character + " position: " + thePlayer.xCoord + ", " + thePlayer.yCoord
+                + " Action Points: " + thePlayer.actionPoints);
+        
+        /**
+         * Not allowed to move if it is not the players turn, or they are out of Action Points
+         */
+        if (theGameState != STATE.GAME_PLAYER_TURN || thePlayer.actionPoints == 0)
+            return false;
         
         if (Gdx.input.isKeyPressed(Input.Keys.UP))
         {
             if (theDungeon.CanMove(thePlayer.xCoord, thePlayer.yCoord+1))
+            {
+                thePlayer.actionPoints--;
                 thePlayer.yCoord += 1;
+            }
             else if (theDungeon.IsMonsterAt(thePlayer.xCoord, thePlayer.yCoord+1))
             {
                 theDungeon.GetMonsterAt(thePlayer.xCoord, thePlayer.yCoord+1).Attack(thePlayer.AS, thePlayer.weaponSlot);
                 thePlayer.Act();
+                thePlayer.actionPoints -= thePlayer.weaponSlot.speed;
             }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.DOWN))
         {
             if (theDungeon.CanMove(thePlayer.xCoord, thePlayer.yCoord-1))
+            {
+                thePlayer.actionPoints--;
                 thePlayer.yCoord -= 1;
+            }
             else if (theDungeon.IsMonsterAt(thePlayer.xCoord, thePlayer.yCoord-1))
             {
                 theDungeon.GetMonsterAt(thePlayer.xCoord, thePlayer.yCoord-1).Attack(thePlayer.AS, thePlayer.weaponSlot);
                 thePlayer.Act();
+                thePlayer.actionPoints -= thePlayer.weaponSlot.speed;
             }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
@@ -174,11 +264,15 @@ public class Game extends ApplicationAdapter implements InputProcessor {
             }
             thePlayer.isFacingLeft = true;
             if (theDungeon.CanMove(thePlayer.xCoord-1, thePlayer.yCoord))
+            {
+                thePlayer.actionPoints--;
                 thePlayer.xCoord -= 1;
+            }
             else if (theDungeon.IsMonsterAt(thePlayer.xCoord-1, thePlayer.yCoord))
             {
                 theDungeon.GetMonsterAt(thePlayer.xCoord-1, thePlayer.yCoord).Attack(thePlayer.AS, thePlayer.weaponSlot);
                 thePlayer.Act();
+                thePlayer.actionPoints -= thePlayer.weaponSlot.speed;
             }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
@@ -189,11 +283,15 @@ public class Game extends ApplicationAdapter implements InputProcessor {
             }
             thePlayer.isFacingLeft = false;
             if (theDungeon.CanMove(thePlayer.xCoord+1, thePlayer.yCoord))
+            {
+                thePlayer.actionPoints--;
                 thePlayer.xCoord += 1;
+            }
             else if (theDungeon.IsMonsterAt(thePlayer.xCoord+1, thePlayer.yCoord))
             {
                 theDungeon.GetMonsterAt(thePlayer.xCoord+1, thePlayer.yCoord).Attack(thePlayer.AS, thePlayer.weaponSlot);
                 thePlayer.Act();
+                thePlayer.actionPoints -= thePlayer.weaponSlot.speed;
             }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.SPACE))
@@ -240,5 +338,17 @@ public class Game extends ApplicationAdapter implements InputProcessor {
     public boolean keyDown(int keycode)
     {
         return true;
+    }
+    
+    /**
+     * What is the distance between two entities?
+     * @return The distance in x/y coordinates
+     */
+    static int DistanceBetween(int x1, int y1, int x2, int y2)
+    {
+        int distX = Math.abs(x1-x2);
+        int distY = Math.abs(y1-y2);
+        
+        return Math.max(distX, distY);
     }
 }

@@ -11,6 +11,8 @@ public class Dungeon {
     
     /* Welcome to the Dungeon! */
     
+    Game theGame;
+    
     Tile floors = new Tile();
     Tile walls = new Tile();
     Tile borders = new Tile();
@@ -23,7 +25,7 @@ public class Dungeon {
     
     char [][] theMap = new char[12][13];
 
-    Monster skeleton = new Monster();
+    Monster skeleton = new Monster(this);
     
     Texture tex;
     
@@ -31,9 +33,10 @@ public class Dungeon {
      * Create a new dungeon
      * Keeping it simple for now.
      */
-    public Dungeon(Texture t)
+    public Dungeon(Texture t, Game g)
     {
         tex = t;
+        theGame = g;
         skeleton.AddSprite(t, 78, 0, 11, 11);
         skeleton.AddSprite(t, 78, 12, 11, 11);
         skeleton.FlipSprites();
@@ -78,7 +81,7 @@ public class Dungeon {
        gate.Close();
        
        // Make a monster!
-       skeleton = new Monster();
+       skeleton = new Monster(this);
        skeleton.AddSprite(tex, 78, 0, 11, 11);
        skeleton.AddSprite(tex, 78, 12, 11, 11);
        skeleton.FlipSprites();
@@ -292,6 +295,12 @@ public class Dungeon {
                 retval = false;
         }
         
+        // Can't move onto the player wither
+        if (theGame.thePlayer.xCoord == x && theGame.thePlayer.yCoord == y)
+        {
+            retval = false;
+        }
+        
         return retval;
     }
     
@@ -340,7 +349,7 @@ public class Dungeon {
             if (m.xCoord == x && m.yCoord == y)
                 return m;
         }
-        return new Monster();
+        return new Monster(this);
     }
     
 }  // end Dungeon
