@@ -264,11 +264,21 @@ public class Monster extends AbstractEntity implements Attackable{
     }
     
     /**
-     * 
+     * Refill action points for a new round
      */
     public void RefillActionPoints()
     {
         actionPoints = maxActionPoints;
+    }
+    
+    /**
+     * Set this monsters weapon
+     */
+    public void SetWeapon(Weapon w)
+    {
+        myWeapon.damage = w.damage;
+        myWeapon.range = w.range;
+        myWeapon.speed = w.speed;
     }
 
 }  // end class

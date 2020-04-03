@@ -46,6 +46,7 @@ public class Game extends ApplicationAdapter implements InputProcessor {
      * Other things
      */
     GenericEntity heart;
+    GenericEntity emptySlot;
     
     /**
      * Timing of monster actions
@@ -74,6 +75,9 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         
         // Load up some textures and stuff   
         Texture t = new Texture("8x.png");
+        Texture t2 = new Texture("9x.png");
+        
+        // Load objects
         thePlayer = new Player(t, 0, 0, 11, 11);
         thePlayer.AddSprite(t, 0, 12, 11, 11);
         thePlayer.xCoord = 1;
@@ -85,6 +89,10 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         heart = new GenericEntity(t, 80, 56, 5, 4);
         heart.width = 32;
         heart.height = 32;
+        
+        emptySlot = new GenericEntity(t2, 15, 0, 12, 12);
+        emptySlot.width = 64;
+        emptySlot.height = 64;
         
         Tile tile = new Tile();
         tile.AddSprite(t, 56, 85, 8, 8);
@@ -204,7 +212,27 @@ public class Game extends ApplicationAdapter implements InputProcessor {
             heart.Render(batch);
             heart.xPosition += 50;
         }
-
+        
+        // Inventory
+        emptySlot.xPosition = 832+32;
+        emptySlot.yPosition = 768+32;
+        emptySlot.Render(batch);
+        emptySlot.yPosition -= 64;
+        emptySlot.Render(batch);
+        emptySlot.xPosition = 832-32;
+        emptySlot.yPosition = 768-32;
+        emptySlot.Render(batch);
+        emptySlot.xPosition = 832+64+32;
+        emptySlot.yPosition = 768-32;
+        emptySlot.Render(batch);
+        
+        emptySlot.xPosition = 832-32;
+        emptySlot.yPosition = 768-32-64;
+        emptySlot.Render(batch);
+        emptySlot.xPosition = 832+64+32;
+        emptySlot.yPosition = 768-32-64;
+        emptySlot.Render(batch);
+        
         batch.end();
     }
 

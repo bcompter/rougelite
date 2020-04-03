@@ -97,6 +97,14 @@ public abstract class AbstractEntity implements iEntity {
     }
     
     /**
+     * Add a sprite to this animation
+     */
+    public void AddSprite(Sprite s)
+    {
+        sprites.add(s);
+    }
+    
+    /**
      * Set the active sprite
      */
     public void SetActiveSprite(int i)

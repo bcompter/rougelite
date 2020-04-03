@@ -3,6 +3,7 @@ package com.mygdx.game;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 
 /**
  * Represents the dungeon
@@ -21,6 +22,11 @@ public class Dungeon {
     Array <Monster> monsters = new Array();
     Array <Monster> removeList = new Array();
     
+    /**
+     * A factory for monsters
+     */
+    MonsterFactory theFactory;
+    
     int level = -1;
     
     char [][] theMap = new char[12][13];
@@ -37,9 +43,8 @@ public class Dungeon {
     {
         tex = t;
         theGame = g;
-        skeleton.AddSprite(t, 78, 0, 11, 11);
-        skeleton.AddSprite(t, 78, 12, 11, 11);
-        skeleton.FlipSprites();
+        
+        theFactory = new MonsterFactory(tex, theGame);
         
         floors.AddSprite(t, 56, 85, 8, 8);
         floors.AddSprite(t, 56, 94, 8, 8);
@@ -72,24 +77,15 @@ public class Dungeon {
     }
     
     /**
-     * 
+     * Generate the next level
      */
     public void GenerateNextLevel()
     {
        level++;
        System.out.println("Generating level " + level);
        gate.Close();
-       
-       // Make a monster!
-       skeleton = new Monster(this);
-       skeleton.AddSprite(tex, 78, 0, 11, 11);
-       skeleton.AddSprite(tex, 78, 12, 11, 11);
-       skeleton.FlipSprites();
-       skeleton.xCoord = 8;
-       skeleton.yCoord = 8;
-       if (monsters.size == 0)
-          monsters.add(skeleton);
-       
+
+       // Generate dungeon tiles
        for (int y = 0; y < 13; y++)
        {
            for (int x = 0; x < 12; x++)
@@ -97,10 +93,6 @@ public class Dungeon {
                if (x == 0 && y == 0)
                {
                    theMap[x][y] = 'Z';
-               }
-               else if (x == 7 && y == 11)
-               {
-                   theMap[x][y] = 'G';
                }
                else if (x == 11 && y == 0)
                {
@@ -116,11 +108,16 @@ public class Dungeon {
                }
                else if (y == 12)
                {
-                   theMap[x][y] = 'W';
+                   theMap[x][y] = 'W';                  
                }
                else if ( (y == 11 && x != 0) && (y == 11 && x != 11))
                {
-                   theMap[x][y] = 'w';
+                   int moss = MathUtils.random(1, 3);
+                   if (moss == 1)
+                       theMap[x][y] = 'M';
+                   else
+                       theMap[x][y] = 'w';
+
                }
                else if (x == 0)
                {
@@ -139,7 +136,30 @@ public class Dungeon {
                    // Floor
                    theMap[x][y] = 'f';
                }
+           }  // end for
+       } // end for
+       
+       // Randomly place the gate
+       int xGate = MathUtils.random(1, 11);
+       theMap[xGate][11] = 'G';
+       
+       // Add one to three monsters
+       int numMonsters = MathUtils.random(1, 3);
+       System.out.println("Num monsters " + numMonsters);
+       for (int i = 0; i < numMonsters; i++)
+       {
+           int x = 0;
+           int y = 0;
+           while (!CanMove(x, y))
+           {
+               x = MathUtils.random(1, 11);
+               y = MathUtils.random(1, 12);
+               System.out.println("x " + x + " y " + y);
            }
+           Monster m = theFactory.GetNewMonster(level);
+           m.xCoord = x;
+           m.yCoord = y;
+           monsters.add(m);
        }
        
     }  // end GenerateNextLevel
@@ -267,6 +287,13 @@ public class Dungeon {
      */
     public boolean CanMove(int x, int y)
     {
+        // Check bounds first
+        if (x < 0 || y < 0)
+            return false;
+        if (x >= 12 || y >= 13)
+            return false;
+        
+        // Search the map for conflicts
         boolean retval = false;
         switch (theMap[x][y])
         {
