@@ -12,13 +12,23 @@ public class Dungeon {
     
     /* Welcome to the Dungeon! */
     
+    /**
+     * Reference to the parent game
+     */
     Game theGame;
     
+    /**
+     * Tiles used to render the dungeon
+     */
     Tile floors = new Tile();
     Tile walls = new Tile();
     Tile borders = new Tile();
     Gate gate = new Gate();
+    Chest chest = new Chest();
     
+    /**
+     * List of monsters in the dungeon
+     */
     Array <Monster> monsters = new Array();
     Array <Monster> removeList = new Array();
     
@@ -26,13 +36,20 @@ public class Dungeon {
      * A factory for monsters
      */
     MonsterFactory theFactory;
-    
+
+    /**
+     * The current dungeon level
+     */
     int level = -1;
     
+    /**
+     * Map of the dungeon
+     */
     char [][] theMap = new char[12][13];
 
-    Monster skeleton = new Monster(this);
-    
+    /**
+     * Texture used to render the dungeon
+     */
     Texture tex;
     
     /**
@@ -74,6 +91,9 @@ public class Dungeon {
         gate.AddSprite(t, 110, 76, 8, 8);
         gate.AddSprite(t, 119, 76, 8, 8);
         gate.AddSprite(t, 128, 76, 8, 8);
+        
+        chest.AddSprite(t, 119, 84, 8, 9);
+        chest.AddSprite(t, 110, 84, 8, 9);
     }
     
     /**
@@ -140,16 +160,31 @@ public class Dungeon {
        } // end for
        
        // Randomly place the gate
-       int xGate = MathUtils.random(1, 11);
+       int xGate = MathUtils.random(1, 10);
        theMap[xGate][11] = 'G';
+       
+       // Randomly place the chest
+       int x = 0;
+       int y = 0;
+       while (!CanMove(x, y))
+       {
+           x = MathUtils.random(1, 11);
+           y = MathUtils.random(1, 12);
+           System.out.println("x " + x + " y " + y);
+       }
+       chest = new Chest();
+       chest.AddSprite(tex, 119, 84, 8, 9);
+       chest.AddSprite(tex, 110, 84, 8, 9);
+       chest.xCoord = x;
+       chest.yCoord = y;
        
        // Add one to three monsters
        int numMonsters = MathUtils.random(1, 3);
        System.out.println("Num monsters " + numMonsters);
        for (int i = 0; i < numMonsters; i++)
        {
-           int x = 0;
-           int y = 0;
+           x = 0;
+           y = 0;
            while (!CanMove(x, y))
            {
                x = MathUtils.random(1, 11);
@@ -250,6 +285,9 @@ public class Dungeon {
             m.Render(batch);
         }
         
+        // Chest
+        chest.Render(batch);
+        
     }  // end Render
     
     /**
@@ -322,7 +360,13 @@ public class Dungeon {
                 retval = false;
         }
         
-        // Can't move onto the player wither
+        // Make sure we are not hitting a chest
+        if (chest.xCoord == x && chest.yCoord == y)
+        {
+            retval = false;
+        }
+        
+        // Can't move onto the player either
         if (theGame.thePlayer.xCoord == x && theGame.thePlayer.yCoord == y)
         {
             retval = false;
@@ -364,6 +408,17 @@ public class Dungeon {
                 return true;
         }
         return false;
+    }
+    
+    /**
+     * Is a chest here? 
+     */
+    public boolean IsChestAt(int x, int y)
+    {
+        if (chest.xCoord == x && chest.yCoord == y)
+            return true;
+        else
+            return false;
     }
     
     /**

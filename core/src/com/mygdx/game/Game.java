@@ -10,6 +10,10 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.Color;
 
 public class Game extends ApplicationAdapter implements InputProcessor {
     
@@ -43,6 +47,11 @@ public class Game extends ApplicationAdapter implements InputProcessor {
     Array <Tile> theTiles = new Array();
     
     /**
+     * Fonts
+     */
+    BitmapFont bmf;
+    
+    /** 
      * Other things
      */
     GenericEntity heart;
@@ -111,6 +120,11 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         camera.update();
         batch.setProjectionMatrix(camera.combined);
         
+        // Load font
+        bmf = new BitmapFont(new FileHandle(new java.io.File("system_bold.fnt")), new TextureRegion(new Texture("system_bold_0.tga")));
+        bmf.setColor(Color.WHITE);
+        bmf.getData().setScale(2.0f);
+        
         // Set the input processor
         Gdx.input.setInputProcessor(this);
     }
@@ -150,16 +164,30 @@ public class Game extends ApplicationAdapter implements InputProcessor {
                     boolean areWeDone = true;
                     for (Monster m : theDungeon.monsters)
                     {
-                        if (m.Act())
+                        if (m.Act() && thePlayer.health > 0)
                         {
                             areWeDone = false;
+                            break;
+                        }
+                        // Chech for player death
+                        if (thePlayer.health <= 0)
+                        {
+                            areWeDone = true;
                             break;
                         }
                     }
                     if (areWeDone)
                     {
-                        thePlayer.RefillActionPoints();
-                        theGameState = STATE.GAME_PLAYER_TURN;
+                        if (thePlayer.health <= 0)
+                        {
+                            System.out.println("DEATH");
+                            theGameState = STATE.GAME_OVER;
+                        }
+                        else
+                        {
+                            thePlayer.RefillActionPoints();
+                            theGameState = STATE.GAME_PLAYER_TURN;
+                        }
                     }
                 }
                 break;
@@ -181,6 +209,18 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         // Clear the screen
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        
+        // If we are in the end game, just display the end screen
+        if (theGameState == STATE.GAME_OVER)
+        {
+            batch.begin();
+            bmf.draw(batch, "Game Over", 125, 725);
+            bmf.getData().setScale(1.0f);
+            bmf.draw(batch, "(press enter to begin a new game)", 125, 675);
+            bmf.getData().setScale(2.0f);
+            batch.end();
+            return;
+        }
         
         // Detect end of level
         if (theDungeon.IsAtGate(thePlayer))
@@ -233,6 +273,9 @@ public class Game extends ApplicationAdapter implements InputProcessor {
         emptySlot.yPosition = 768-32-64;
         emptySlot.Render(batch);
         
+        // Text
+        bmf.draw(batch, "Level " + theDungeon.level, 25, 925);
+        
         batch.end();
     }
 
@@ -248,7 +291,25 @@ public class Game extends ApplicationAdapter implements InputProcessor {
     {
         System.out.println("Key pressed! " 
                 + (int)character + " position: " + thePlayer.xCoord + ", " + thePlayer.yCoord
-                + " Action Points: " + thePlayer.actionPoints);
+                + " Action Points: " + thePlayer.actionPoints
+                + " Game State: " + theGameState);
+        
+        if (theGameState == STATE.GAME_OVER)
+        {
+            if (character == 13)
+            {
+                // Reset everything
+                theDungeon.level = -1;
+                thePlayer.health = thePlayer.healthStart;
+                thePlayer.xCoord = 1;
+                thePlayer.yCoord = 1;
+                theDungeon.monsters.clear();
+                theDungeon.GenerateNextLevel();
+                thePlayer.RefillActionPoints();
+                theGameState = STATE.GAME_START;
+            }
+            return true;
+        }
         
         /**
          * Not allowed to move if it is not the players turn, or they are out of Action Points
@@ -269,6 +330,11 @@ public class Game extends ApplicationAdapter implements InputProcessor {
                 thePlayer.Act();
                 thePlayer.actionPoints -= thePlayer.weaponSlot.speed;
             }
+            else if (theDungeon.IsChestAt(thePlayer.xCoord, thePlayer.yCoord+1))
+            {
+                theDungeon.chest.Open();
+                thePlayer.actionPoints--;
+            }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.DOWN))
         {
@@ -282,6 +348,11 @@ public class Game extends ApplicationAdapter implements InputProcessor {
                 theDungeon.GetMonsterAt(thePlayer.xCoord, thePlayer.yCoord-1).Attack(thePlayer.AS, thePlayer.weaponSlot);
                 thePlayer.Act();
                 thePlayer.actionPoints -= thePlayer.weaponSlot.speed;
+            }
+            else if (theDungeon.IsChestAt(thePlayer.xCoord, thePlayer.yCoord-1))
+            {
+                theDungeon.chest.Open();
+                thePlayer.actionPoints--;
             }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.LEFT))
@@ -302,6 +373,11 @@ public class Game extends ApplicationAdapter implements InputProcessor {
                 thePlayer.Act();
                 thePlayer.actionPoints -= thePlayer.weaponSlot.speed;
             }
+            else if (theDungeon.IsChestAt(thePlayer.xCoord-1, thePlayer.yCoord))
+            {
+                theDungeon.chest.Open();
+                thePlayer.actionPoints--;
+            }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.RIGHT))
         {
@@ -320,6 +396,11 @@ public class Game extends ApplicationAdapter implements InputProcessor {
                 theDungeon.GetMonsterAt(thePlayer.xCoord+1, thePlayer.yCoord).Attack(thePlayer.AS, thePlayer.weaponSlot);
                 thePlayer.Act();
                 thePlayer.actionPoints -= thePlayer.weaponSlot.speed;
+            }
+            else if (theDungeon.IsChestAt(thePlayer.xCoord+1, thePlayer.yCoord))
+            {
+                theDungeon.chest.Open();
+                thePlayer.actionPoints--;
             }
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.SPACE))

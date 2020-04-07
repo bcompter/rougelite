@@ -22,6 +22,7 @@ public class Player extends AbstractEntity implements Attackable{
     float ANIMATE_STEP = 0.5f;
     float animationTimer = 0;
     float actTimer = 0;
+    float dmgTimer = 0;
     
     /**
      * Stats
@@ -29,6 +30,7 @@ public class Player extends AbstractEntity implements Attackable{
     int actionPoints = 5;
     int maxActionPoints = 5;
     int health = 10;
+    int healthStart = 10;
     int AS = 2;
     int defense = 7;
     int armor = 0;
@@ -56,6 +58,7 @@ public class Player extends AbstractEntity implements Attackable{
         {
             System.out.println("HIT");
             health -= w.damage;
+            dmgTimer = 0.5f;
             if (health < 1)
             {
                 /* Player death handled in main game loop */
@@ -92,6 +95,18 @@ public class Player extends AbstractEntity implements Attackable{
                     actTimer = 0;   
                     ANIMATE_STEP = 0.5f;
                 }
+            }
+        }
+        if (dmgTimer > 0.0)
+        {
+            green = 0;
+            blue = 0;
+            dmgTimer -= delta;
+            if (dmgTimer <= 0.0)
+            {
+                dmgTimer = 0.0f;
+                green = 1;
+                blue = 1;
             }
         }
     }  // end Update

@@ -3,8 +3,11 @@ package com.mygdx.game;
 /**
  * A weapon
  */
-public class Weapon {
+public class Weapon extends abItem {
     
+    /**
+     * Standard attributes
+     */
     String name;
     int speed;
     int damage;

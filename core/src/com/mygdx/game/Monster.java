@@ -25,6 +25,7 @@ public class Monster extends AbstractEntity implements Attackable{
     float animationTimer = 0;
     float actTimer = 0;
     boolean isDying = false;
+    float dmgTimer = 0;
     
     /**
      * Stats
@@ -74,6 +75,9 @@ public class Monster extends AbstractEntity implements Attackable{
                             if (myDungeon.CanMove(xCoord + 1, yCoord))
                             {
                                 xCoord++;
+                                if (isFacingLeft)
+                                    FlipSprites();
+                                isFacingLeft = false;
                             }
                         }
                         else
@@ -81,6 +85,9 @@ public class Monster extends AbstractEntity implements Attackable{
                             if (myDungeon.CanMove(xCoord - 1, yCoord))
                             {
                                 xCoord--;
+                                if (!isFacingLeft)
+                                    FlipSprites();
+                                isFacingLeft = true;
                             }
                         }
                     }
@@ -112,6 +119,9 @@ public class Monster extends AbstractEntity implements Attackable{
                         if (myDungeon.CanMove(xCoord + 1, yCoord))
                         {
                             xCoord++;
+                            if (isFacingLeft)
+                                FlipSprites();
+                            isFacingLeft = false;
                         }
                     }
                     else
@@ -119,6 +129,9 @@ public class Monster extends AbstractEntity implements Attackable{
                         if (myDungeon.CanMove(xCoord - 1, yCoord))
                         {
                             xCoord--;
+                            if (!isFacingLeft)
+                                FlipSprites();
+                            isFacingLeft = true;
                         }
                     }                   
                         
@@ -169,6 +182,7 @@ public class Monster extends AbstractEntity implements Attackable{
         {
             System.out.println("HIT");
             health -= w.damage;
+            dmgTimer = 0.5f;
             if (health < 1)
             {
                 isDying = true;
@@ -221,6 +235,19 @@ public class Monster extends AbstractEntity implements Attackable{
             }
         }
         
+        if (dmgTimer > 0.0)
+        {
+            green = 0;
+            blue = 0;
+            dmgTimer -= delta;
+            if (dmgTimer <= 0.0)
+            {
+                dmgTimer = 0.0f;
+                green = 1;
+                blue = 1;
+            }
+        }
+        
     }  // end Update
     
     /**
@@ -240,7 +267,7 @@ public class Monster extends AbstractEntity implements Attackable{
     }  // end Render
     
     /**
-     * Flip this players sprites
+     * Flip this monsters sprites
      */
     public void FlipSprites()
     {
